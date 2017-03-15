@@ -17,11 +17,13 @@ public class ScoreboardScript : MonoBehaviour
     private TcpClient socket;
     private NetworkStream stream;
     private StreamReader reader;
+    private StreamWriter writer;
 
     public void Start()
     {
         // default host / port
-        string host = "127.0.0.1";
+        //string host = "127.0.0.1";
+        string host = "193.11.161.74";
         int port = 6666;
 
         try
@@ -29,7 +31,11 @@ public class ScoreboardScript : MonoBehaviour
             socket = new TcpClient(host, port);
             stream = socket.GetStream();
             reader = new StreamReader(stream);
+            writer = new StreamWriter(stream);
             socketReady = true;
+
+            string message = "h¤s¤";
+            Send(message);
         }
         catch (Exception e)
         {
@@ -59,7 +65,7 @@ public class ScoreboardScript : MonoBehaviour
         {
             //add new player
             GameObject scoreTile = Instantiate(scoreTilePrefab, scoreboardContainer.transform) as GameObject;
-            scoreTile.AddComponent<ScoreTileScript>();
+            scoreTile.transform.localScale = new Vector3(1, 1, 1);
             scoreTile.GetComponent<ScoreTileScript>().setName(substring[1]);
             scoreTiles.Add(scoreTile);
         }
@@ -68,25 +74,27 @@ public class ScoreboardScript : MonoBehaviour
             foreach(GameObject s in scoreTiles)
             {
                 if (s.GetComponent<ScoreTileScript>().getName() == substring[1])
-                {
                     s.GetComponent<ScoreTileScript>().setAnswer(substring[2]);
-                    s.GetComponent("Answer").GetComponent<Text>().text = "[SUBMITTED]";
-                }
             }
         }
         else if(substring[0] == "r")
         {
             foreach(GameObject s in scoreTiles)
-            {
-                s.GetComponent("Answer").GetComponent<Text>().text = s.GetComponent<ScoreTileScript>().getAnswer();
-            }
+                s.GetComponent<ScoreTileScript>().RevealAnswer();
         }
         else if(substring[0] == "s")
         {
             foreach (GameObject s in scoreTiles)
-            {
-                s.GetComponent("Answer").GetComponent<Text>().text = "";
-            }
+                s.GetComponent<ScoreTileScript>().ResetAnswer();
         }
+    }
+
+    private void Send(string data)
+    {
+        if (!socketReady)
+            return;
+
+        writer.WriteLine(data);
+        writer.Flush();
     }
 }

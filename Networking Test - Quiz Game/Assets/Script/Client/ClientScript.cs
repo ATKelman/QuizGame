@@ -18,7 +18,8 @@ public class ClientScript : MonoBehaviour
     private StreamWriter    writer;
     private StreamReader    reader;
 
-    private string  host = "127.0.0.1";
+    //private string  host = "127.0.0.1";
+    string host = "193.11.161.74";
     private int     port = 6666;
 
     private string  clientName;

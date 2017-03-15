@@ -16,17 +16,31 @@ Platform assembly: E:\School\Networking Test\QuizGame\chat_Data\Managed\UnityEng
 Loading E:\School\Networking Test\QuizGame\chat_Data\Managed\UnityEngine.Networking.dll into Unity Child Domain
 Platform assembly: E:\School\Networking Test\QuizGame\chat_Data\Managed\UnityEngine.Analytics.dll (this message is harmless)
 Loading E:\School\Networking Test\QuizGame\chat_Data\Managed\UnityEngine.Analytics.dll into Unity Child Domain
-- Completed reload, in  0.041 seconds
+- Completed reload, in  0.070 seconds
 Platform assembly: E:\School\Networking Test\QuizGame\chat_Data\Managed\System.Core.dll (this message is harmless)
 Platform assembly: E:\School\Networking Test\QuizGame\chat_Data\Managed\System.dll (this message is harmless)
 desktop: 1920x1080 60Hz; virtual: 3840x1080 at 0,0
 <RI> Initializing input.
 <RI> Input initialized.
 <RI> Initialized touch support.
-UnloadTime: 0.958923 ms
+UnloadTime: 1.928697 ms
 server has been started on port 6666
  
 (Filename: C:/buildslave/unity/build/artifacts/generated/common/runtime/UnityEngineDebugBindings.gen.cpp Line: 42)
 
+Write error : System.ObjectDisposedException: The object was used after being disposed.
+  at System.Net.Sockets.TcpClient.CheckDisposed () [0x00000] in <filename unknown>:0 
+  at System.Net.Sockets.TcpClient.GetStream () [0x00000] in <filename unknown>:0 
+  at ServerScript.Broadcast (System.String data, System.Collections.Generic.List`1 qc) [0x00000] in <filename unknown>:0  to client asfa
+ 
+(Filename: C:/buildslave/unity/build/artifacts/generated/common/runtime/UnityEngineDebugBindings.gen.cpp Line: 42)
+
+Write error : System.ObjectDisposedException: The object was used after being disposed.
+  at System.Net.Sockets.TcpClient.CheckDisposed () [0x00000] in <filename unknown>:0 
+  at System.Net.Sockets.TcpClient.GetStream () [0x00000] in <filename unknown>:0 
+  at ServerScript.Broadcast (System.String data, System.Collections.Generic.List`1 qc) [0x00000] in <filename unknown>:0  to client asfa
+ 
+(Filename: C:/buildslave/unity/build/artifacts/generated/common/runtime/UnityEngineDebugBindings.gen.cpp Line: 42)
+
 Setting up 1 worker threads for Enlighten.
-  Thread -> id: 20c0 -> priority: 1 
+  Thread -> id: 2a34 -> priority: 1 

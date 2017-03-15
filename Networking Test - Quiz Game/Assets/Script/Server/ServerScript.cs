@@ -133,6 +133,11 @@ public class ServerScript : MonoBehaviour
             else // scoreboard
             {
                 scoreboards.Add(c);
+                foreach(QuizClient q in players)
+                {
+                    string message = "p¤" + q.clientName + "¤";
+                    Broadcast(message, scoreboards);
+                }
             }
         }
         else if (substring[0] == "a")
@@ -165,6 +170,9 @@ public class ServerScript : MonoBehaviour
             }
         }
         c.tile = instance;
+
+        string message = "p¤" + c.clientName + "¤";
+        Broadcast(message, scoreboards);
     }
 
     private void Broadcast(string data, List<QuizClient> qc)
@@ -196,7 +204,7 @@ public class ServerScript : MonoBehaviour
     public void OnStart()
     {
         string data = "s¤";
-        Broadcast(data, players);
+        Broadcast(data, clients);
     }
     private void UpdateAnswer(QuizClient c)
     {
