@@ -13,11 +13,9 @@ public class PlayerTileScript : MonoBehaviour
         score++;
         scoreText.text = score.ToString();
     }
-
     public void DecreaseScore()
     {
         score--;
         scoreText.text = score.ToString();
     }
-
 }

@@ -138,6 +138,10 @@ public class ServerScript : MonoBehaviour
         else if (substring[0] == "a")
         {
             c.SetAnswer(substring[1]);
+            UpdateAnswer(c);
+
+            string message = "a¤" + c.clientName + "¤" + c.currentAnswer;
+            Broadcast(message, scoreboards);
         }
         else
         {
@@ -147,7 +151,20 @@ public class ServerScript : MonoBehaviour
 
     private void InstantiateNewPlayer(QuizClient c)
     {
-
+        GameObject instance = Instantiate(PlayerTilePrefab, PlayerPanel.transform) as GameObject;
+        Text[] texts = instance.GetComponentsInChildren<Text>();
+        foreach(Text t in texts)
+        {
+            if(t.name == "PlayerNameText")
+            {
+                t.text = c.clientName;
+            }
+            else if(t.name == "PlayersCurrentAnswerText")
+            {
+                t.text = "";
+            }
+        }
+        c.tile = instance;
     }
 
     private void Broadcast(string data, List<QuizClient> qc)
@@ -181,7 +198,15 @@ public class ServerScript : MonoBehaviour
         string data = "s¤";
         Broadcast(data, players);
     }
-
+    private void UpdateAnswer(QuizClient c)
+    {
+        Text[] texts = c.tile.GetComponentsInChildren<Text>();
+        foreach(Text t in texts)
+        {
+            if (t.name == "PlayersCurrentAnswerText")
+                t.text = c.currentAnswer;
+        }
+    }
 }
 
 public class QuizClient
@@ -190,6 +215,8 @@ public class QuizClient
     public string clientName;
     public string currentAnswer;
     public int currentScore;
+
+    public GameObject tile;
 
     public QuizClient(TcpClient clientSocket)
     {
