@@ -71,7 +71,7 @@ public class Server : MonoBehaviour
 
     private void StartListening()
     {
-        server.BeginAcceptTcpClient( AcceptTcpClient, server);
+        server.BeginAcceptTcpClient(AcceptTcpClient, server);
     }
     private bool IsConnected(TcpClient c)
     {

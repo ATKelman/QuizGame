@@ -6,35 +6,58 @@ using System;
 using System.Net;
 using System.IO;
 using UnityEngine.UI;
+using System.Text;
 
 public class ServerScript : MonoBehaviour
 {
+    private string serverName = "Unnamed Server";
+
+    //Panels and Tiles
     public GameObject PlayerPanel;
     public GameObject PlayerTilePrefab;
 
+    //Fields and Texts
+    public Text serverNameText;
+    public Text CurrentIPText;
+
+    //Networking
     private int port = 6666;
+    private List<QuizClient> players = new List<QuizClient>();
+    private List<QuizClient> scoreboards = new List<QuizClient>();
+    private List<QuizClient> clients = new List<QuizClient>();
+    private List<QuizClient> disconnectedClients = new List<QuizClient>();
 
-    private List<QuizClient> players;
-    private List<QuizClient> scoreboards;
-    private List<QuizClient> clients;
-    private List<QuizClient> disconnectedClients;
+    private TcpListener gameServer;
 
+    private UdpClient serverBrowserServer;
+    private IPEndPoint broadcastEndpoint;
 
-    private TcpListener server;
+    //Gamestate Variables
     private bool serverStarted;
 
     private void Start()
     {
-        players             = new List<QuizClient>();
-        scoreboards         = new List<QuizClient>();
-        clients             = new List<QuizClient>();
-        disconnectedClients = new List<QuizClient>();
+        serverName = GameState.serverName;
+
+        broadcastEndpoint = new IPEndPoint(IPAddress.Broadcast, port);
+
+        CurrentIPText.text = Network.player.ipAddress;
+        serverNameText.text = GameState.serverName;
 
         try
         {
-            server = new TcpListener(IPAddress.Any, port);
-            server.Start();
-
+            serverBrowserServer = new UdpClient(port);
+        }
+        catch (Exception e)
+        {
+            Debug.Log("UDP Socket Error: " + e.Message);
+        }
+        
+        //Start Game Hosting
+        try
+        {
+            gameServer = new TcpListener(IPAddress.Any, port);
+            gameServer.Start();
             StartListening();
             serverStarted = true;
 
@@ -42,9 +65,10 @@ public class ServerScript : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.Log("Socket error: " + e.Message);
+            Debug.Log("TCP Socket Error: " + e.Message);
         }
     }
+
     private void Update()
     {
         if (!serverStarted)
@@ -52,6 +76,64 @@ public class ServerScript : MonoBehaviour
 
         ListenForClient();
 
+        //Broadcast Existence
+        Byte[] sendBytes = Encoding.ASCII.GetBytes(serverName);
+        serverBrowserServer.Send(sendBytes, sendBytes.Length, broadcastEndpoint);
+    }
+
+    private void StartListening()
+    {
+        gameServer.BeginAcceptTcpClient(AcceptTcpClient, gameServer);
+    }
+
+    private void AcceptTcpClient(IAsyncResult ar)
+    {
+        TcpListener listener = (TcpListener)ar.AsyncState;
+
+        clients.Add(new QuizClient(listener.EndAcceptTcpClient(ar)));
+        StartListening();
+    }
+
+    private void InstantiateNewPlayer(QuizClient c)
+    {
+        GameObject instance = Instantiate(PlayerTilePrefab) as GameObject;
+        instance.transform.SetParent(PlayerPanel.transform, false);
+        Text[] texts = instance.GetComponentsInChildren<Text>();
+        foreach (Text t in texts)
+        {
+            if (t.name == "PlayerNameText")
+            {
+                t.text = c.clientName;
+            }
+            else if (t.name == "PlayersCurrentAnswerText")
+            {
+                t.text = "";
+            }
+        }
+        c.tile = instance;
+
+        string message = "p¤" + c.clientName + "¤";
+        Broadcast(message, scoreboards);
+    }
+
+    private bool IsConnected(TcpClient c)
+    {
+        try
+        {
+            if (c != null && c.Client != null && c.Client.Connected)
+            {
+                if (c.Client.Poll(0, SelectMode.SelectRead))
+                    return !(c.Client.Receive(new byte[1], SocketFlags.Peek) == 0);
+
+                return true;
+            }
+            else
+                return false;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private void ListenForClient()
@@ -83,37 +165,6 @@ public class ServerScript : MonoBehaviour
         }
     }
 
-    private void StartListening()
-    {
-        server.BeginAcceptTcpClient(AcceptTcpClient, server);
-    }
-    private bool IsConnected(TcpClient c)
-    {
-        try
-        {
-            if (c != null && c.Client != null && c.Client.Connected)
-            {
-                if (c.Client.Poll(0, SelectMode.SelectRead))
-                    return !(c.Client.Receive(new byte[1], SocketFlags.Peek) == 0);
-
-                return true;
-            }
-            else
-                return false;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-    private void AcceptTcpClient(IAsyncResult ar)
-    {
-        TcpListener listener = (TcpListener)ar.AsyncState;
-
-        clients.Add(new QuizClient(listener.EndAcceptTcpClient(ar)));
-        StartListening();
-    }
-
     private void OnIncomingData(QuizClient c, string data)
     {
         string[] substring = data.Split('¤');
@@ -125,7 +176,7 @@ public class ServerScript : MonoBehaviour
                 if (substring[2] != null)
                     c.SetName(substring[2]);
                 else
-                    c.SetName("retard");
+                    c.SetName("Retard");
 
                 // instantiate new player
                 InstantiateNewPlayer(c);
@@ -152,28 +203,7 @@ public class ServerScript : MonoBehaviour
         {
             print("message failed");
         }
-    }
-
-    private void InstantiateNewPlayer(QuizClient c)
-    {
-        GameObject instance = Instantiate(PlayerTilePrefab, PlayerPanel.transform) as GameObject;
-        Text[] texts = instance.GetComponentsInChildren<Text>();
-        foreach(Text t in texts)
-        {
-            if(t.name == "PlayerNameText")
-            {
-                t.text = c.clientName;
-            }
-            else if(t.name == "PlayersCurrentAnswerText")
-            {
-                t.text = "";
-            }
-        }
-        c.tile = instance;
-
-        string message = "p¤" + c.clientName + "¤";
-        Broadcast(message, scoreboards);
-    }
+    }    
 
     private void Broadcast(string data, List<QuizClient> qc)
     {
@@ -201,11 +231,18 @@ public class ServerScript : MonoBehaviour
             Broadcast(answer, scoreboards);
         }
     }
+
     public void OnStart()
     {
+        foreach(QuizClient q in players)
+        {
+            q.currentAnswer = "";
+            UpdateAnswer(q);
+        }
         string data = "s¤";
         Broadcast(data, clients);
     }
+
     private void UpdateAnswer(QuizClient c)
     {
         Text[] texts = c.tile.GetComponentsInChildren<Text>();
