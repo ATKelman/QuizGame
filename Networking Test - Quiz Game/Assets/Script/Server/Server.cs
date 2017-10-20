@@ -96,6 +96,7 @@ public class Server : MonoBehaviour
     {
         TcpListener listener = (TcpListener)ar.AsyncState;
 
+
         clients.Add(new ServerClient(listener.EndAcceptTcpClient(ar)));
 
         StartListening();

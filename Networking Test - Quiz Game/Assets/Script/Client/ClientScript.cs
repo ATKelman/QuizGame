@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.SceneManagement;
 using System.Collections;
 using System.Net;
 using UnityEngine.UI;
@@ -208,6 +209,7 @@ public class ClientScript : MonoBehaviour
 
         writer.WriteLine(data);
         writer.Flush();
+        Debug.Log("Sent Data: " + data);
     }
 
     // Gameplay Commands
@@ -217,6 +219,19 @@ public class ClientScript : MonoBehaviour
         string message = "a¤" + answer;
         answerGroup.SetActive(false);
         Send(message);
+    }
+
+    public void OnBackButton()
+    {
+        serverBrowserSocket.Close();
+        SceneManager.LoadScene(0);
+    }
+
+    public void OnInGameBackButton()
+    {
+        socket.Close();
+        serverBrowserSocket.Close();
+        SceneManager.LoadScene(0);
     }
 }
 
